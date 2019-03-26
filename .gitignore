@@ -98,13 +98,7 @@ dependency-reduced-pom.xml
 /tests/junit-py27.xml
 /tests/*.pyc
 **/.vagrant/*
-/testing-vm/persistent/dockerdisk.vdi
-/testing-vm/shared/myservices.yml
 *.box
-/pass-layer/start_local_ingress_controller.sh
-/sessionservice/pkg
-/sessionservice/src/github.com
-/sessionservice/src/gopkg.in
 /documentation/static/html
 /documentation/static/.doctrees
 /documentation/static/html/_static
@@ -114,3 +108,4 @@ dependency-reduced-pom.xml
 hazelcastkubernetesofficial/*
 ldap/*
 \.vscode/
+Pipfile.lock

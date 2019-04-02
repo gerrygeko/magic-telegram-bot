@@ -14,22 +14,30 @@ def search(bot, update):
     return CHOOSING
 
 
-def get_named_cards(bot, update, user_data):
+def get_named_cards(bot, update):
     card_name = update.message.text
     log.info('User is searching for the card %s', card_name)
-    card = api.get_named_card(card_name)
-    bot.send_photo(chat_id=update.message.chat_id, photo=card['data'][0]['image_uris']['normal'])
-    return START
+    card_list = api.get_named_card(card_name)
+    if len(card_list) == 0:
+        bot.send_message(chat_id=update.message.chat_id, text="No cards found with the text that you typed, type a new "
+                                                              "name")
+        return CHOOSING
+    else:
+        card_image = card_list[0]['image_uris']['normal']
+        bot.send_photo(chat_id=update.message.chat_id, photo=card_image)
+        return START
 
 
 def search_interrupted(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text="Search interrupted.")
 
+
 states = {
     START: [CommandHandler('search', search)],
-    CHOOSING: [MessageHandler(Filters.text, get_named_cards, pass_user_data=True)],
+    CHOOSING: [MessageHandler(Filters.text, get_named_cards)],
 }
+
 
 class NamedSearchHandler(ConversationHandler):
 

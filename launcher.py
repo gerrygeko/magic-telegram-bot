@@ -25,7 +25,6 @@ def random(bot, update):
 def help(bot, update):
     log.info('Help command called')
     bot.send_message(chat_id=update.message.chat_id, text='Click the "/" to list all commands or type /start to start '
-         
                                                           'searching')
 
 

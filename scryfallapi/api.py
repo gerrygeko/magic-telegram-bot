@@ -24,19 +24,27 @@ def get_named_card(name):
     json_cards = []
     if json_data['object'] != 'error':
         json_cards_to_order = json_data['data']
-        # Sorting the list of cards
+        # Sorting the list of cards (still doesn't work)
         json_cards = sorted(json_cards_to_order, key=lambda k: ("eur" not in k, k.get("eur", None)), reverse=True)
-        i = 0
-        print(json_cards)
+        cards_discarded = []
+        cards_not_discarded = []
+        print('------------List before------------')
         for card_dict in json_cards:
-            print('processing')
             print(card_dict['name'])
+            if 'eur' in card_dict.keys():
+                print(card_dict['eur'])
+        for card_dict in json_cards:
             if 'eur' not in card_dict.keys():
-                print('This card moved to last position')
+                print('Discarding this card')
                 print(card_dict['name'])
-                json_cards.pop(i)
-                print(json_cards)
+                cards_discarded.append(card_dict)
             else:
-                i += 1
-        print(json_cards)
+                cards_not_discarded.append(card_dict)
+                print('Not discarding this')
+                print(card_dict['name'])
+                print(card_dict['eur'])
+        json_cards = cards_not_discarded + cards_discarded
+        print('------------List ordered------------')
+        for card_dict in json_cards:
+            print(card_dict['name'])
     return json_cards

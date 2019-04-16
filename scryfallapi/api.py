@@ -48,3 +48,39 @@ def get_named_card(name):
         for card_dict in json_cards:
             print(card_dict['name'])
     return json_cards
+
+
+def first_card_with_price(json_cards_to_process):
+    for card in json_cards_to_process:
+        if 'eur' in card.keys():
+            return card
+    log.error('No cards in the list with price available')
+    return None
+
+
+def get_most_expansive_card(name):
+    response = requests.get(SCRYFALL_URL + NAMED_ENDPOINT + name)
+    json_data = json.loads(response.text)
+    json_cards = []
+    if json_data['object'] != 'error':
+        json_cards_to_process = json_data['data']
+        first_card = first_card_with_price(json_cards_to_process)
+        if first_card is None:
+            return [], False
+        json_cards.append(first_card)
+        for card_dict in json_cards_to_process:
+            if 'eur' in card_dict.keys():
+                if float(card_dict['eur']) > float(json_cards[0]['eur']):
+                    print('Exchanging ' + card_dict['name'] + ' for ' + json_cards[0]['name'])
+                    json_cards[0] = card_dict
+    else:
+        log.error('No cards were found')
+        return [], False
+    if 'card_faces' in json_cards[0].keys():
+        log.info('Found double-faced card')
+        new_json_cards = []
+        new_json_cards.append(json_cards[0]['card_faces'][0])
+        new_json_cards.append(json_cards[0]['card_faces'][1])
+        new_json_cards[0]['eur'], new_json_cards[1]['eur'] = json_cards[0]['eur']
+        return new_json_cards, True
+    return json_cards, False

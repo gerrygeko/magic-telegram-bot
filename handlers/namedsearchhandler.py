@@ -1,3 +1,4 @@
+from telegram import InputMediaPhoto
 from telegram.ext import ConversationHandler, MessageHandler, Filters, CommandHandler
 
 import logger
@@ -14,17 +15,33 @@ def search(bot, update):
     return CHOOSING
 
 
+# Method to create a media group to display more images if the card is composed by more
+def create_media_group(card_list):
+    media = []
+    media_one = InputMediaPhoto(media=card_list[0]['image_uris']['normal'])
+    media_two = InputMediaPhoto(media=card_list[1]['image_uris']['normal'])
+    media.append(media_one)
+    media.append(media_two)
+    return media
+
+
 def get_named_cards(bot, update):
     card_name = update.message.text
     log.info('User is searching for the card %s', card_name)
-    card_list = api.get_named_card(card_name)
+    card_list, double_faced = api.get_most_expansive_card(card_name)
     if len(card_list) == 0:
         bot.send_message(chat_id=update.message.chat_id, text="No cards found with the text that you typed, type a new "
                                                               "name")
         return CHOOSING
     else:
-        card_image = card_list[0]['image_uris']['normal']
-        bot.send_photo(chat_id=update.message.chat_id, photo=card_image)
+        if not double_faced:
+            card_image = card_list[0]['image_uris']['normal']
+            bot.send_photo(chat_id=update.message.chat_id, photo=card_image)
+        else:
+            media = create_media_group(card_list)
+            bot.send_media_group(chat_id=update.message.chat_id, media=media)
+        cost_message = 'The cost of this card is: ' + card_list[0]['eur'] + ' euro'
+        bot.send_message(chat_id=update.message.chat_id, text=cost_message)
         return START
 
 

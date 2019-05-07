@@ -1,6 +1,6 @@
 # magic-telegram-bot
 
-Telegram Bot that allow you to ask for cards that you want to be displayed. You can add this bot to your Telegram searching for `@MagicGekoBot`. 
+Telegram Bot that allow you to ask for cards that you want to be displayed. You can add this bot to your Telegram, searching for `@MagicGekoBot`. 
 
 ## List of commands
 

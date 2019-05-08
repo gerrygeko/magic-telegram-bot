@@ -1,4 +1,5 @@
 import logger
+import telegramutils
 
 from telegram.ext import Updater, CommandHandler
 
@@ -11,21 +12,20 @@ TOKEN = '748543401:AAG75JbeJwztGeenL-LUw-dev6CWkHQF-Wk'
 
 def start(bot, update):
     log.info('Start command called')
-    bot.send_message(chat_id=update.message.chat_id, text="Welcome to Magic Search Bot. To start searching for a card "
-                                                          "type /search.")
+    telegramutils.send_text_message(bot, update, "Welcome to Magic Search Bot. To start searching for a card type "
+                                                 "/search.")
 
 
 def random(bot, update):
     log.info('Visualize a random card')
     card = api.get_random_card()
-    print(card['image_uris']['normal'])
-    bot.send_photo(chat_id=update.message.chat_id, photo=card['image_uris']['normal'])
+    log.info(card['image_uris']['normal'])
+    telegramutils.send_picture(bot, update, card)
 
 
 def help(bot, update):
     log.info('Help command called')
-    bot.send_message(chat_id=update.message.chat_id, text='Click the "/" to list all commands or type /start to start '
-                                                          'searching')
+    telegramutils.send_text_message(bot, update, 'Click the "/" to list all commands or type /start to start searching')
 
 
 def error(update, context):

@@ -2,82 +2,59 @@ from telegram import InputMediaPhoto, KeyboardButton, ReplyKeyboardMarkup, Reply
 from telegram.ext import ConversationHandler, MessageHandler, Filters, CommandHandler
 
 import logger
+import telegramutils
 from scryfallapi import api
 
-START, CHOOSING, PICKING,  = range(3)
+START, CHOOSING, PICKING, = range(3)
 log = logger.get_logger()
 fallback = []
 
 
 def search(bot, update):
-    send_text_message(bot, update, "Type the name of the card you want to search. It doesn't need to be the exact name")
+    telegramutils.send_text_message(bot, update,
+                                    "Type the name of the card you want to search. It doesn't need to be the exact "
+                                    "name. The most expansive one will be showed")
     return CHOOSING
 
 
 def get_named_cards(bot, update):
     card_name = update.message.text
-    log.info('User is searching for the card %s', card_name)
+    log.info('User is searching for cards that contain in the text name the word: %s', card_name)
     most_expansive_card_list, double_faced = api.get_most_expansive_card(card_name)
     card_list_by_name = api.get_list_card_by_name(card_name)
     if len(most_expansive_card_list) == 0:
-        bot.send_message(chat_id=update.message.chat_id, text="No cards found with the text that you typed, type a new "
-                                                              "name")
+        telegramutils.send_text_message(bot, update, "No cards found with the text that you typed, type a new name")
         return CHOOSING
     else:
         if not double_faced:
-            send_picture(bot, update, most_expansive_card_list[0])
+            telegramutils.send_picture(bot, update, most_expansive_card_list[0])
         else:
-            media = create_media_group(most_expansive_card_list)
-            bot.send_media_group(chat_id=update.message.chat_id, media=media)
-        send_message_with_card_cost(bot, update, most_expansive_card_list[0])
+            media = create_media_group_for_double_faced_cards(most_expansive_card_list)
+            telegramutils.send_message_with_media_group(bot, update, media)
+        telegramutils.send_message_with_card_cost(bot, update, most_expansive_card_list[0])
         if len(card_list_by_name) > 0:
-            send_message_with_keyboard(bot, update, create_keyboard_from_card_list(card_list_by_name),
-                                       "Other cards that also contains the text you provided: ", one_time_use=True)
+            telegramutils.send_message_with_keyboard(bot, update, create_keyboard_from_card_list(card_list_by_name),
+                                                     "Other cards that also contains the text you provided: ",
+                                                     one_time_use=True)
             return PICKING
         return START
-
-
-def send_message_with_keyboard(bot, update, keyboard, message, one_time_use):
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_use=one_time_use)
-    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=reply_markup)
-
-
-def send_message_with_card_cost(bot, update, card, remove_keyboard=False):
-    print(card)
-    reply_markup = ReplyKeyboardRemove(remove_keyboard=False)
-    if 'eur' in card.keys():
-        cost_message = "The cost of this card is: " + card['eur'] + " euro."
-    else:
-        cost_message = "This card has no cost"
-    if remove_keyboard:
-        reply_markup.remove_keyboard = True
-    bot.send_message(chat_id=update.message.chat_id, text=cost_message, reply_markup=reply_markup)
-
-
-def send_text_message(bot, update, message):
-    bot.send_message(chat_id=update.message.chat_id, text=message)
-
-
-def send_picture(bot, update, card):
-    bot.send_photo(chat_id=update.message.chat_id, photo=card['image_uris']['normal'])
 
 
 def get_specific_card(bot, update):
     card_name = update.message.text
     log.info('User is searching for the specific card %s', card_name)
     card = api.get_specific_card(card_name)
-    send_picture(bot, update, card)
-    send_message_with_card_cost(bot, update, card, True)
+    telegramutils.send_picture(bot, update, card)
+    telegramutils.send_message_with_card_cost(bot, update, card, True)
     return START
 
 
 def search_interrupted(bot, update):
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="Search interrupted.")
+    telegramutils.send_text_message(bot, update, "Search interrupted.")
 
 
 # Method to create a media group to display more images if the card is composed by more
-def create_media_group(card_list):
+def create_media_group_for_double_faced_cards(card_list):
     media = []
     media_one = InputMediaPhoto(media=card_list[0]['image_uris']['normal'])
     media_two = InputMediaPhoto(media=card_list[1]['image_uris']['normal'])
@@ -133,9 +110,3 @@ class NamedSearchHandler(ConversationHandler):
         self.current_conversation = None
         self.current_handler = None
         self.logger = log
-
-
-
-
-
-

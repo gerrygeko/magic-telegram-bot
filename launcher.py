@@ -1,3 +1,5 @@
+import os
+
 import logger
 import telegramutils
 
@@ -7,7 +9,6 @@ from handlers.namedsearchhandler import NamedSearchHandler
 from scryfallapi import api
 
 log = logger.get_logger()
-TOKEN = '748543401:AAG75JbeJwztGeenL-LUw-dev6CWkHQF-Wk'
 
 
 def start(bot, update):
@@ -48,8 +49,15 @@ def create_dispatcher(updater):
     return dp
 
 
+def load_token_from_file():
+    with open(os.path.dirname(os.path.realpath(__file__)) + '\\token') as file:
+        token = file.readline().strip()
+    return token
+
+
 if __name__ == '__main__':
     log.info('Booting the bot')
-    updater = Updater(token=TOKEN)
+    token = load_token_from_file()
+    updater = Updater(token=token)
     dispatcher = create_dispatcher(updater=updater)
     updater.start_polling()

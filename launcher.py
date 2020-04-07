@@ -6,40 +6,48 @@ import telegramutils
 from telegram.ext import Updater, CommandHandler
 
 from handlers.namedsearchhandler import NamedSearchHandler
-from scryfallapi import api
+from scryfallapi import api, bot_state
 
 log = logger.get_logger()
 
 
-def start(bot, update):
+def start_function(bot, update):
     log.info('Start command called')
     telegramutils.send_text_message(bot, update, "Welcome to Magic Search Bot. To start searching for a card type "
                                                  "/search.")
 
 
-def random(bot, update):
+def random_function(bot, update):
     log.info('Visualize a random card')
     card = api.get_random_card()
     log.info(card['image_uris']['normal'])
     telegramutils.send_picture(bot, update, card)
 
 
-def help(bot, update):
+def help_function(bot, update):
     log.info('Help command called')
     telegramutils.send_text_message(bot, update, 'Click the "/" to list all commands or type /start to start searching')
 
 
-def error(update, context):
+def exit_function(bot, update):
+    log.info('User is aborting')
+    telegramutils.send_text_message(bot, update, 'You are exiting the current operation. Type /search for a new search'
+                                                 ' or /help to get the list of the commands')
+
+
+def error(update):
     """Log Errors caused by Updates."""
     log.warning('Update "%s" caused error "%s"', update, error)
 
 
 def create_dispatcher(updater):
     dp = updater.dispatcher
-    start_handler = CommandHandler(command='start', callback=start)
+    exit_handler = CommandHandler(command='exit', callback=exit_function)
+    start_handler = CommandHandler(command='start', callback=start_function)
     named_handler = NamedSearchHandler()
-    random_handler = CommandHandler(command='random', callback=random)
-    help_handler = CommandHandler(command='help', callback=help)
+    random_handler = CommandHandler(command='random', callback=random_function)
+    help_handler = CommandHandler(command='help', callback=help_function)
+    dp.add_handler(exit_handler)
     dp.add_handler(start_handler)
     dp.add_handler(named_handler)
     dp.add_handler(random_handler)

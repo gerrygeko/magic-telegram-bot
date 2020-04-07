@@ -1,20 +1,21 @@
-from telegram import InputMediaPhoto, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import InputMediaPhoto, KeyboardButton
 from telegram.ext import ConversationHandler, MessageHandler, Filters, CommandHandler
 
 import logger
 import telegramutils
-from scryfallapi import api
+from scryfallapi import api, bot_state
 
-START, CHOOSING, PICKING, = range(3)
+states = bot_state.NamedSearchStates
 log = logger.get_logger()
 fallback = []
 
 
-def search(bot, update):
+def search_command(bot, update):
+    log.info('User is in the suggestion phase')
     telegramutils.send_text_message(bot, update,
                                     "Type the name of the card you want to search. It doesn't need to be the exact "
                                     "name. The most expansive one will be showed")
-    return CHOOSING
+    return states.CHOOSING
 
 
 def get_named_cards(bot, update):
@@ -24,7 +25,7 @@ def get_named_cards(bot, update):
     card_list_by_name = api.get_list_card_by_name(card_name)
     if len(most_expansive_card_list) == 0:
         telegramutils.send_text_message(bot, update, "No cards found with the text that you typed, type a new name")
-        return CHOOSING
+        return states.CHOOSING
     else:
         if not double_faced:
             telegramutils.send_picture(bot, update, most_expansive_card_list[0])
@@ -36,8 +37,8 @@ def get_named_cards(bot, update):
             telegramutils.send_message_with_keyboard(bot, update, create_keyboard_from_card_list(card_list_by_name),
                                                      "Other cards that also contains the text you provided: ",
                                                      one_time_use=True)
-            return PICKING
-        return START
+            return states.PICKING
+        return states.START
 
 
 def get_specific_card(bot, update):
@@ -46,7 +47,13 @@ def get_specific_card(bot, update):
     card = api.get_specific_card(card_name)
     telegramutils.send_picture(bot, update, card)
     telegramutils.send_message_with_card_cost(bot, update, card, True)
-    return START
+    return states.START
+
+
+def abort_command(bot, update):
+    log.info('User is aborting')
+    telegramutils.send_text_message(bot, update, 'You are aborting the current search. You can start a new one')
+    return states.START
 
 
 def search_interrupted(bot, update):
@@ -78,10 +85,10 @@ def create_keyboard_from_card_list(card_list):
     return keyboard
 
 
-states = {
-    START: [CommandHandler('search', search)],
-    CHOOSING: [MessageHandler(Filters.text, get_named_cards)],
-    PICKING: [MessageHandler(Filters.text, get_specific_card)],
+handler_states = {
+    states.START: [CommandHandler('search', search_command)],
+    states.CHOOSING: [MessageHandler(Filters.text, get_named_cards), CommandHandler('abort', abort_command)],
+    states.PICKING: [MessageHandler(Filters.text, get_specific_card), CommandHandler('abort', abort_command)],
 }
 
 
@@ -95,8 +102,8 @@ class NamedSearchHandler(ConversationHandler):
                  per_user=True,
                  per_message=False,
                  conversation_timeout=None):
-        self.states = states
-        self.entry_points = [CommandHandler('search', search)]
+        self.states = handler_states
+        self.entry_points = [CommandHandler('search', search_command)]
         self.fallbacks = fallback
         self.allow_reentry = allow_reentry
         self.run_async_timeout = run_async_timeout

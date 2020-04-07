@@ -23,17 +23,13 @@ def get_named_cards(bot, update):
     card_name = update.message.text
     log.info('User %s is searching for cards that contain in the text name the word: %s',
              telegramutils.get_user_from_update(update), card_name)
-    most_expansive_card_list, double_faced = api.get_most_expansive_card(card_name)
+    most_expansive_card_list = api.get_most_expansive_card(card_name)
     card_list_by_name = api.get_list_card_by_name(card_name)
     if len(most_expansive_card_list) == 0:
         telegramutils.send_text_message(bot, update, "No cards found with the text that you typed, type a new name")
         return states.CHOOSING
     else:
-        if not double_faced:
-            telegramutils.send_picture(bot, update, most_expansive_card_list[0])
-        else:
-            media = create_media_group_for_double_faced_cards(most_expansive_card_list)
-            telegramutils.send_message_with_media_group(bot, update, media)
+        telegramutils.send_picture(bot, update, most_expansive_card_list[0])
         telegramutils.send_message_with_card_cost(bot, update, most_expansive_card_list[0])
         if len(card_list_by_name) > 0:
             telegramutils.send_message_with_keyboard(bot, update, create_keyboard_from_card_list(card_list_by_name),

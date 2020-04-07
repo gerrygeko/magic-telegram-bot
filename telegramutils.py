@@ -22,7 +22,7 @@ def send_text_message(bot, update, message):
 
 
 def send_picture(bot, update, card):
-    if 'card_faces' in card.keys():
+    if 'card_faces' in card.keys() and 'image_uris' not in card.keys():
         mediagroup = create_media_group_for_double_faced_cards(card['card_faces'])
         send_message_with_media_group(bot, update, mediagroup)
     else:

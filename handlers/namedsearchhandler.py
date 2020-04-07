@@ -31,7 +31,7 @@ def get_named_cards(bot, update):
     else:
         telegramutils.send_picture(bot, update, most_expansive_card_list[0])
         telegramutils.send_message_with_card_cost(bot, update, most_expansive_card_list[0])
-        if len(card_list_by_name) > 0:
+        if len(card_list_by_name) > 1:
             telegramutils.send_message_with_keyboard(bot, update, create_keyboard_from_card_list(card_list_by_name),
                                                      "Other cards that also contains the text you provided: ",
                                                      one_time_use=True)

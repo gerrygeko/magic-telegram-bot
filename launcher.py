@@ -52,8 +52,8 @@ def create_dispatcher(updater):
     dp.add_handler(named_handler)
     dp.add_handler(random_handler)
     dp.add_handler(help_handler)
-    log.info('Handler registered')
     dp.add_error_handler(error)
+    log.info('Handlers registered')
     return dp
 
 

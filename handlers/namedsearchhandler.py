@@ -11,7 +11,7 @@ fallback = []
 
 
 def search_command(bot, update):
-    log.info('User is in the suggestion phase')
+    log.info('User %s is in the suggestion phase', telegramutils.get_user_from_update(update))
     telegramutils.send_text_message(bot, update,
                                     "Type the name of the card you want to search. It doesn't need to be the exact "
                                     "name. The most expansive one will be showed")
@@ -20,7 +20,8 @@ def search_command(bot, update):
 
 def get_named_cards(bot, update):
     card_name = update.message.text
-    log.info('User is searching for cards that contain in the text name the word: %s', card_name)
+    log.info('User %s is searching for cards that contain in the text name the word: %s',
+             telegramutils.get_user_from_update(update), card_name)
     most_expansive_card_list, double_faced = api.get_most_expansive_card(card_name)
     card_list_by_name = api.get_list_card_by_name(card_name)
     if len(most_expansive_card_list) == 0:
@@ -43,7 +44,7 @@ def get_named_cards(bot, update):
 
 def get_specific_card(bot, update):
     card_name = update.message.text
-    log.info('User is searching for the specific card %s', card_name)
+    log.info('User %s is searching for the specific card %s', telegramutils.get_user_from_update(update), card_name)
     card = api.get_specific_card(card_name)
     telegramutils.send_picture(bot, update, card)
     telegramutils.send_message_with_card_cost(bot, update, card, True)
@@ -51,7 +52,7 @@ def get_specific_card(bot, update):
 
 
 def abort_command(bot, update):
-    log.info('User is aborting')
+    log.info('User %s is aborting', telegramutils.get_user_from_update(update))
     telegramutils.send_text_message(bot, update, 'You are aborting the current search. You can start a new one')
     return states.START
 

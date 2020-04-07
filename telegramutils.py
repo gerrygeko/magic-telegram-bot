@@ -27,3 +27,7 @@ def send_picture(bot, update, card):
 
 def send_message_with_media_group(bot, update, media):
     bot.send_media_group(chat_id=update.message.chat_id, media=media)
+
+
+def get_user_from_update(update):
+    return update.message.from_user.username

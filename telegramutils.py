@@ -1,4 +1,4 @@
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, InputMediaPhoto
 
 
 def send_message_with_keyboard(bot, update, keyboard, message, one_time_use):
@@ -22,7 +22,11 @@ def send_text_message(bot, update, message):
 
 
 def send_picture(bot, update, card):
-    bot.send_photo(chat_id=update.message.chat_id, photo=card['image_uris']['normal'])
+    if 'card_faces' in card.keys():
+        mediagroup = create_media_group_for_double_faced_cards(card['card_faces'])
+        send_message_with_media_group(bot, update, mediagroup)
+    else:
+        bot.send_photo(chat_id=update.message.chat_id, photo=card['image_uris']['normal'])
 
 
 def send_message_with_media_group(bot, update, media):
@@ -31,3 +35,11 @@ def send_message_with_media_group(bot, update, media):
 
 def get_user_from_update(update):
     return update.message.from_user.username
+
+
+# Method to create a media group to display more images if the card is composed by more
+def create_media_group_for_double_faced_cards(card_list):
+    media = []
+    for card in card_list:
+        media.append(InputMediaPhoto(media=card['image_uris']['normal']))
+    return media

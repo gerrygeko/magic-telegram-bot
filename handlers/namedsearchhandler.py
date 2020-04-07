@@ -14,7 +14,8 @@ def search_command(bot, update):
     log.info('User %s is in the suggestion phase', telegramutils.get_user_from_update(update))
     telegramutils.send_text_message(bot, update,
                                     "Type the name of the card you want to search. It doesn't need to be the exact "
-                                    "name. The most expansive one will be showed")
+                                    "name. The most expansive one will be showed. "
+                                    "You can abort at any moment the search by executing the /abort command")
     return states.CHOOSING
 
 

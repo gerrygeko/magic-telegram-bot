@@ -21,14 +21,11 @@ def get_random_card():
 def get_list_card_by_name(name):
     response = requests.get(SCRYFALL_URL + NAMED_ENDPOINT + name)
     json_data = json.loads(response.text)
-    json_cards = []
-    if json_data['object'] != 'error':
-        for card in json_data['data']:
-            json_cards.append(card)
-    else:
+    if json_data['object'] == 'error':
         log.error('No cards were found')
-        return []
-    return json_cards
+        return None
+    else:
+        return json_data['data']
 
 
 def get_specific_card(name):
@@ -38,8 +35,7 @@ def get_specific_card(name):
         return json_data['data'][0]
     else:
         log.error('No cards were found')
-        return []
-    return json_cards
+        return None
 
 
 def first_card_with_price(json_cards_to_process):
@@ -54,19 +50,11 @@ def first_card_with_price(json_cards_to_process):
 def get_most_expansive_card(name):
     response = requests.get(SCRYFALL_URL + NAMED_ENDPOINT + name)
     json_data = json.loads(response.text)
-    json_cards = []
     if json_data['object'] != 'error':
         json_cards_to_process = json_data['data']
-        first_card = first_card_with_price(json_cards_to_process)
-        if first_card is None:
-            return []
-        json_cards.append(first_card)
-        for card_dict in json_cards_to_process:
-            if card_dict['prices']['eur'] is not None:
-                if float(card_dict['prices']['eur']) > float(json_cards[0]['prices']['eur']):
-                    print('Exchanging ' + card_dict['name'] + ' for ' + json_cards[0]['name'])
-                    json_cards[0] = card_dict
+        expensive_card = max(json_cards_to_process,
+                             key=lambda card: (float(card['prices']['eur']) if card['prices']['eur'] is not None else 0))
+        return expensive_card
     else:
         log.error('No cards were found')
-        return []
-    return json_cards
+        return None

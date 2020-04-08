@@ -23,14 +23,14 @@ def get_named_cards(bot, update):
     card_name = update.message.text
     log.info('User %s is searching for cards that contain in the text name the word: %s',
              telegramutils.get_user_from_update(update), card_name)
-    most_expansive_card_list = api.get_most_expansive_card(card_name)
-    card_list_by_name = api.get_list_card_by_name(card_name)
-    if len(most_expansive_card_list) == 0:
+    expensive_card = api.get_most_expansive_card(card_name)
+    if expensive_card is None:
         telegramutils.send_text_message(bot, update, "No cards found with the text that you typed, type a new name")
         return states.CHOOSING
     else:
-        telegramutils.send_picture(bot, update, most_expansive_card_list[0])
-        telegramutils.send_message_with_card_cost(bot, update, most_expansive_card_list[0])
+        telegramutils.send_picture(bot, update, expensive_card)
+        telegramutils.send_message_with_card_cost(bot, update, expensive_card)
+        card_list_by_name = api.get_list_card_by_name(card_name)
         if len(card_list_by_name) > 1:
             telegramutils.send_message_with_keyboard(bot, update, create_keyboard_from_card_list(card_list_by_name),
                                                      "Other cards that also contains the text you provided: ",
@@ -50,7 +50,7 @@ def get_specific_card(bot, update):
 
 def abort_command(bot, update):
     log.info('User %s is aborting', telegramutils.get_user_from_update(update))
-    telegramutils.send_text_message(bot, update, 'You are aborting the current search. You can start a new one')
+    telegramutils.send_text_message(bot, update, 'You are aborting the current /search. You can start a new one')
     return states.START
 
 

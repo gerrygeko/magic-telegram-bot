@@ -109,6 +109,7 @@ def create_keyboard_for_card_reprint(card_list):
     keyboard = []
     row = None
     first_element = True
+    # The keyboard is formed by a pair of buttons on each row. This part can be refactored to have a cleaner code
     for i in range(0, len(card_list)):
         if first_element:
             row = [KeyboardButton(text=card_list[i]['set_name'])]
@@ -117,7 +118,12 @@ def create_keyboard_for_card_reprint(card_list):
             row.append(KeyboardButton(text=card_list[i]['set_name']))
             keyboard.append(row)
             first_element = True
-    row = [KeyboardButton(text=abort_emoji + " Abort")]
+            row = None
+    # When attaching the abort button, check if we have already a row available otherwise create a new one
+    if row is None:
+        row = [KeyboardButton(text=abort_emoji + " Abort")]
+    else:
+        row.append(KeyboardButton(text=abort_emoji + " Abort"))
     keyboard.append(row)
     return keyboard
 

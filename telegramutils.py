@@ -7,13 +7,15 @@ def send_message_with_keyboard(bot, update, keyboard, message, one_time_use):
 
 
 def send_message_with_card_cost(bot, update, card, remove_keyboard=False):
-    reply_markup = ReplyKeyboardRemove(remove_keyboard=False)
+    reply_markup = ReplyKeyboardRemove()
     if card['prices']['eur'] is not None:
         cost_message = "The cost of this card is: " + card['prices']['eur'] + " euro."
     else:
         cost_message = "This card has no cost"
     if remove_keyboard:
         reply_markup.remove_keyboard = True
+    else:
+        reply_markup.remove_keyboard = False
     bot.send_message(chat_id=update.message.chat_id, text=cost_message, reply_markup=reply_markup)
 
 

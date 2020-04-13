@@ -1,7 +1,5 @@
 import json
-
 import requests
-
 import logger
 
 SCRYFALL_URL = 'https://api.scryfall.com'
@@ -25,6 +23,17 @@ def get_list_card_by_name(name):
         log.error('No cards were found')
         return None
     else:
+        return json_data['data']
+
+
+def get_list_card_for_reprints(uri):
+    response = requests.get(uri)
+    json_data = json.loads(response.text)
+    if json_data['object'] == 'error':
+        log.error('No reprints were found')
+        return None
+    else:
+        print(json_data['data'])
         return json_data['data']
 
 

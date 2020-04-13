@@ -19,8 +19,10 @@ def send_message_with_card_cost(bot, update, card, remove_keyboard=False):
     bot.send_message(chat_id=update.message.chat_id, text=cost_message, reply_markup=reply_markup)
 
 
-def send_text_message(bot, update, message):
-    bot.send_message(chat_id=update.message.chat_id, text=message)
+def send_text_message(bot, update, message, remove_keyboard=False):
+    reply_markup = ReplyKeyboardRemove()
+    reply_markup.remove_keyboard = remove_keyboard
+    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=reply_markup)
 
 
 def send_picture(bot, update, card):

@@ -9,6 +9,7 @@ from scryfallapi import api, bot_state
 states = bot_state.NamedSearchStates
 log = logger.get_logger()
 abort_emoji = emojize(":x:", use_aliases=True)
+back_emoji = emojize(":arrow_left:", use_aliases=True)
 
 
 def search_command(update: Update, context: CallbackContext):
@@ -60,7 +61,8 @@ def get_specific_card(update: Update, context: CallbackContext):
 def get_specific_printing(update: Update, context: CallbackContext):
     set_name = update.message.text
     if set_name == '{} Abort'.format(abort_emoji):
-        telegramutils.send_text_message(context.bot, update, 'You can search for a new card')
+        telegramutils.send_text_message(context.bot, update, 'You aborted the current search. '
+                                                             'You can search for a new card', True)
         return states.CHOOSING
     card_name = context.user_data['card_name']
     card_reprints = context.user_data['card_reprints']

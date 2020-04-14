@@ -6,10 +6,13 @@ import logger
 import telegramutils
 from scryfallapi import api, bot_state
 
+TEXT_SEARCH_RESULT = 'Back to the search result'
+
 states = bot_state.NamedSearchStates
 log = logger.get_logger()
 abort_emoji = emojize(":x:", use_aliases=True)
 back_emoji = emojize(":arrow_left:", use_aliases=True)
+state_choosing_keyboard = None
 
 
 def search_command(update: Update, context: CallbackContext):
@@ -22,10 +25,10 @@ def search_command(update: Update, context: CallbackContext):
 
 
 def get_named_cards(update: Update, context: CallbackContext):
-    card_name = update.message.text
+    input_name = update.message.text
     log.info('User %s is searching for cards that contain in the text name the word: %s',
-             telegramutils.get_user_from_update(update), card_name)
-    expensive_card = api.get_most_expansive_card(card_name)
+             telegramutils.get_user_from_update(update), input_name)
+    expensive_card = api.get_most_expansive_card(input_name)
     if expensive_card is None:
         telegramutils.send_text_message(context.bot, update, "No cards found with the text that you typed, "
                                                              "type a new name")
@@ -33,9 +36,12 @@ def get_named_cards(update: Update, context: CallbackContext):
     else:
         telegramutils.send_picture(context.bot, update, expensive_card)
         telegramutils.send_message_with_card_cost(context.bot, update, expensive_card)
-        card_list_by_name = api.get_list_card_by_name(card_name)
+        card_list_by_name = api.get_list_card_by_name(input_name)
+        global state_choosing_keyboard
+        state_choosing_keyboard = create_keyboard_from_card_list(card_list_by_name)
         if len(card_list_by_name) > 1:
-            telegramutils.send_message_with_keyboard(context.bot, update, create_keyboard_from_card_list(card_list_by_name),
+            telegramutils.send_message_with_keyboard(context.bot, update,
+                                                     state_choosing_keyboard,
                                                      "Other cards that also contains the text you provided: ",
                                                      one_time_use=True)
             return states.PICKING
@@ -64,6 +70,13 @@ def get_specific_printing(update: Update, context: CallbackContext):
         telegramutils.send_text_message(context.bot, update, 'You aborted the current search. '
                                                              'You can search for a new card', True)
         return states.CHOOSING
+    elif set_name == '{} Back'.format(back_emoji):
+        telegramutils.send_text_message(context.bot, update, TEXT_SEARCH_RESULT, True)
+        telegramutils.send_message_with_keyboard(context.bot, update,
+                                                 state_choosing_keyboard,
+                                                 "Other cards that also contains the text you provided: ",
+                                                 one_time_use=True)
+        return states.PICKING
     card_name = context.user_data['card_name']
     card_reprints = context.user_data['card_reprints']
     user_name = telegramutils.get_user_from_update(update)
@@ -78,7 +91,8 @@ def get_specific_printing(update: Update, context: CallbackContext):
 
 def abort_command(update: Update, context: CallbackContext):
     log.info('User %s is aborting', telegramutils.get_user_from_update(update))
-    telegramutils.send_text_message(context.bot, update, 'You are aborting the current /search. You can start a new one')
+    telegramutils.send_text_message(context.bot, update,
+                                    'You are aborting the current /search. You can start a new one')
     return states.START
 
 
@@ -120,13 +134,10 @@ def create_keyboard_for_card_reprint(card_list):
             row.append(KeyboardButton(text=card_list[i]['set_name']))
             keyboard.append(row)
             first_element = True
-            row = None
-    # When attaching the abort button, check if we have already a row available otherwise create a new one
-    if row is None:
-        row = [KeyboardButton(text=abort_emoji + " Abort")]
-    else:
-        row.append(KeyboardButton(text=abort_emoji + " Abort"))
-    keyboard.append(row)
+    # If there is only one element left in the last row, attach to the keyboard before creating a new one
+    if len(row) == 1: keyboard.append(row)
+    row_with_actions = [KeyboardButton(text=back_emoji + " Back"), KeyboardButton(text=abort_emoji + " Abort")]
+    keyboard.append(row_with_actions)
     return keyboard
 
 
@@ -147,4 +158,3 @@ handler_states = {
 conversation_handler = ConversationHandler(states=handler_states,
                                            entry_points=[CommandHandler('search', search_command)],
                                            fallbacks=[])
-

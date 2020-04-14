@@ -12,7 +12,6 @@ log = logger.get_logger()
 def get_random_card():
     response = requests.get(SCRYFALL_URL + RANDOM_ENDPOINT)
     json_card = json.loads(response.text)
-    print(json_card.keys())
     return json_card
 
 
@@ -33,7 +32,6 @@ def get_list_card_for_reprints(uri):
         log.error('No reprints were found')
         return None
     else:
-        print(json_data['data'])
         return json_data['data']
 
 
